@@ -2,10 +2,13 @@ use anyhow::{anyhow, Result};
 use std::{
     fs::{self, File},
     io::{self, Write},
-    os::unix::fs::PermissionsExt,
     path::PathBuf,
     process::{Command, Stdio},
 };
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+
 use tempfile::tempdir;
 
 include!(concat!(env!("OUT_DIR"), "/embedded_bins.rs"));

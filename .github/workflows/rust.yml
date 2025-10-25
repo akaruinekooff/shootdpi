@@ -28,6 +28,9 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
+    - name: Add Rust target
+      run: rustup target add ${{ matrix.target }} || true
+
     - name: Install cross
       run: cargo install cross --locked
 
