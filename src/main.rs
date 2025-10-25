@@ -34,7 +34,6 @@ impl App {
         let name = match arch {
             "x86_64" => ("ciadpi-x86_64", ciadpi_x86_64),
             "aarch64" => ("ciadpi-aarch64", ciadpi_aarch64),
-            "mips" => ("ciadpi-mips", ciadpi_mips),
             "i686" => ("ciadpi-i686", ciadpi_i686),
             _ => return Err(anyhow!("unknown arch: {}", arch)),
         };
