@@ -33,7 +33,7 @@ jobs:
       run: cargo install cross --locked
 
     - name: Build release
-      run: cross build --release --target ${{ matrix.target }} --image rustembedded/cross:${{ matrix.target }}
+      run: cross build --release --target ${{ matrix.target }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v5
