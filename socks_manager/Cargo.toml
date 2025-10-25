@@ -1,0 +1,13 @@
+[package]
+name = "socks_manager"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gio = "0.21.2"
+anyhow = "1.0.100"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.55.0"
+windows-sys = { version = "0.61.2", features = ["Win32_Networking_WinInet"] }
+win_inet = "0.1.1"

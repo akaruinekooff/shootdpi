@@ -17,7 +17,7 @@ fn main() {
 
             out.push_str(&format!(
                 "pub const {}: &[u8] = include_bytes!(r#\"{}\"#);\n",
-                const_name,
+                const_name.to_uppercase(),
                 path.display()
             ));
         }

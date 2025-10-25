@@ -1,10 +1,6 @@
 use anyhow::{anyhow, Result};
-use std::{
-    fs::{self, File},
-    io::{self, Write},
-    path::PathBuf,
-    process::{Command, Stdio},
-};
+use std::{env, fs::{self, File}, io::{self, Write}, path::PathBuf, process::{Command, Stdio}};
+use socks_manager::SocksManager;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -16,32 +12,35 @@ include!(concat!(env!("OUT_DIR"), "/embedded_bins.rs"));
 #[derive(Debug)]
 struct App {
     args: String,
+    is_proxy: bool,
+    socks_manager: SocksManager
 }
 
 impl App {
     fn new() -> Self {
-        Self { args: String::new() }
+        let socks_manager = SocksManager::new();
+        Self { args: String::new(), is_proxy: false, socks_manager }
     }
 
     fn pick_binary(&self) -> Result<(&'static str, &'static [u8])> {
-        let os = std::env::consts::OS;
-        let arch = std::env::consts::ARCH;
+        let os = env::consts::OS;
+        let arch = env::consts::ARCH;
 
         if os == "windows" {
-            return Ok(("ciadpi.exe", ciadpi_exe));
+            return Ok(("ciadpi.exe", CIADPI_EXE));
         }
 
         let name = match arch {
-            "x86_64" => ("ciadpi-x86_64", ciadpi_x86_64),
-            "aarch64" => ("ciadpi-aarch64", ciadpi_aarch64),
-            "i686" => ("ciadpi-i686", ciadpi_i686),
+            "x86_64" => ("ciadpi-x86_64", CIADPI_X86_64),
+            "aarch64" => ("ciadpi-aarch64", CIADPI_AARCH64),
+            "i686" => ("ciadpi-i686", CIADPI_I686),
             _ => return Err(anyhow!("unknown arch: {}", arch)),
         };
 
         Ok(name)
     }
 
-    fn run(&self) -> Result<()> {
+    fn run(&mut self) -> Result<()> {
         let (name, data) = self.pick_binary()?;
         let dir = tempdir()?;
         let bin_path = dir.path().join(name);
@@ -62,6 +61,11 @@ impl App {
 
         println!("running {} {:?}", name, args);
 
+        if self.is_proxy {
+            println!("enabling system SOCKS5 proxy...");
+            unsafe{self.socks_manager.connect("127.0.0.1", 1080)?;}
+        }
+
         let output = Command::new(&bin_path)
             .args(args)
             .stdout(Stdio::piped())
@@ -79,6 +83,11 @@ impl App {
                 "\nstderr:\n{}",
                 String::from_utf8_lossy(&output.stderr)
             );
+        }
+
+        if self.is_proxy {
+            println!("disabling system SOCKS5 proxy...");
+            unsafe{self.socks_manager.disconnect()?;}
         }
 
         println!("\nexited: {:?}", output.status.code());
@@ -151,9 +160,20 @@ fn choose_strategy() -> String {
 }
 
 fn main() -> Result<()> {
+    let mut is_proxy: bool = false;
+
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() > 1 {
+        if args[1] == "--proxy" || args[1] == "-p" {
+            println!("using proxy mode (this function in beta)");
+            is_proxy = true;
+        }
+    }
+
     println!("==== ciadpi launcher ====");
-    println!("os: {}", std::env::consts::OS);
-    println!("arch: {}", std::env::consts::ARCH);
+    println!("os: {}", env::consts::OS);
+    println!("arch: {}", env::consts::ARCH);
     println!("hint: for builtin strategies, socks ip and port proxy would be: 127.0.0.1:1080");
     println!("hint #2: you can add your strategies: ~/.shootdpi/strategies/ (*nix) or %USERPROFILE%\\.shootdpi\\strategies\\ (Windows)");
 
@@ -161,6 +181,7 @@ fn main() -> Result<()> {
 
     let mut app = App::new();
     app.args = args;
+    app.is_proxy = is_proxy;
 
     app.run()?;
 
