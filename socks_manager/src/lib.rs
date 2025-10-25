@@ -1,9 +1,12 @@
 mod windows;
 
-
+#[cfg(unix)]
 use gio::prelude::*;
+#[cfg(unix)]
 use gio::Settings;
+#[cfg(unix)]
 use std::process::Command;
+
 #[cfg(target_os = "windows")]
 use windows::windows_proxy::WindowsProxyBackup;
 #[cfg(target_os = "windows")]
@@ -85,6 +88,7 @@ impl SocksManager {
         Ok(())
     }
 
+    #[cfg(unix)]
     fn connect_gnome(&mut self, host: &str, port: i32) -> anyhow::Result<()> {
         let proxy_settings = Settings::new("org.gnome.system.proxy");
         let socks_settings = Settings::new("org.gnome.system.proxy.socks");
@@ -104,6 +108,7 @@ impl SocksManager {
         Ok(())
     }
 
+    #[cfg(unix)]
     fn disconnect_gnome(&mut self) -> anyhow::Result<()> {
         if let Some(backup) = &self.backup {
             let proxy_settings = Settings::new("org.gnome.system.proxy");
@@ -118,6 +123,7 @@ impl SocksManager {
         Ok(())
     }
 
+    #[cfg(unix)]
     fn connect_kde(&mut self, host: &str, port: i32) -> anyhow::Result<()> {
         Command::new("kwriteconfig5")
             .args(["--file", "kioslaverc", "--group", "Proxy Settings", "--key", "ProxyType", "1"])
@@ -133,6 +139,7 @@ impl SocksManager {
         Ok(())
     }
 
+    #[cfg(unix)]
     fn disconnect_kde(&mut self) -> anyhow::Result<()> {
         Command::new("kwriteconfig5")
             .args(["--file", "kioslaverc", "--group", "Proxy Settings", "--key", "ProxyType", "0"])
