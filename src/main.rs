@@ -151,7 +151,7 @@ fn choose_strategy() -> String {
 }
 
 fn main() -> Result<()> {
-    println!("==== ciadpi launcher ====");
+    println!("==== shootdpi ====");
     println!("os: {}", std::env::consts::OS);
     println!("arch: {}", std::env::consts::ARCH);
     println!("hint: for builtin strategies, socks ip and port proxy would be: 127.0.0.1:1080");
