@@ -34,7 +34,7 @@ impl SocksManager {
             Self { backup: None, win_backup: None }
         }
 
-        #[cfg(target_os = "linux")]
+        #[cfg(unix)]
         {
             Self { backup: None }
         }
@@ -55,8 +55,10 @@ impl SocksManager {
         let de = Self::detect_desktop_env().unwrap_or_default().to_lowercase();
 
         if de.contains("gnome") {
+            #[cfg(unix)]
             self.connect_gnome(host, port)?;
         } else if de.contains("kde") {
+            #[cfg(unix)]
             self.connect_kde(host, port)?;
         } else {
             unsafe {std::env::set_var("ALL_PROXY", format!("socks5://{}:{}", host, port));}
@@ -78,8 +80,10 @@ impl SocksManager {
         let de = Self::detect_desktop_env().unwrap_or_default().to_lowercase();
 
         if de.contains("gnome") {
+            #[cfg(unix)]
             self.disconnect_gnome()?;
         } else if de.contains("kde") {
+            #[cfg(unix)]
             self.disconnect_kde()?;
         } else {
             unsafe {std::env::remove_var("ALL_PROXY");}
