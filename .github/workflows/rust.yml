@@ -26,14 +26,14 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
+    - name: Dependencies
+      run: apt install libglib2.0-dev
+
     - name: Add Rust target
       run: rustup target add ${{ matrix.target }} || true
 
-    - name: Install cross
-      run: cargo install cross --locked
-
     - name: Build release
-      run: cross build --release --target ${{ matrix.target }}
+      run: cargo build --release --target ${{ matrix.target }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v5
